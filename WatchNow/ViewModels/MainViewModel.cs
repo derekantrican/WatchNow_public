@@ -30,9 +30,6 @@ public class MainViewModel : ViewModelBase
      * - There is a problem with SponsorBlock segements that go until the end of the video, causing the video to loop back to the beginning
      * - "new video count" should be per video, not per channel/source
      *   - maybe along with a way to "mark watched" a video to mark is as "not new" (that would also be done automatically when you play a video)
-     * - WatchNow should handle its own AppData & Credentials (rather than using YouTubeSubscriptionDownloader)
-     *   - Credentials for YouTube (maybe I don't need these and instead need an API key? Only would need these if I'm going to get user info like subscriptions)
-     *   - Credentials for Raindrop
      * - There should be a way to manage the channels you want to show (a settings window)
      * =======================================================================
      */
