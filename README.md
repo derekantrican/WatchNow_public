@@ -1,5 +1,6 @@
 
-<p align="center"><img width="446" height="77" alt="WatchNow" src="https://github.com/user-attachments/assets/837c2f5c-44d3-4b86-8ebe-e71562dacf97" /></p>
+<p align="center"><img width="446" height="77" alt="WatchNow" src="https://github.com/user-attachments/assets/469aa6b6-66fd-4050-91f6-ad21ce5a2c94" /></p>
+
 
 WatchNow is a simple always-on-top app for watching videos while multitasking
 
