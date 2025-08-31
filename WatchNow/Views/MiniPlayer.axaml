@@ -1,0 +1,26 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" Width="280" Height="37"
+        x:Class="WatchNow.Avalonia.MiniPlayer"
+        Title="WatchNow (MiniPlayer)"
+		SystemDecorations="None"
+		ExtendClientAreaChromeHints="NoChrome"
+		ExtendClientAreaToDecorationsHint="True"
+        Icon="/Assets/WatchNow.ico"
+		Topmost="True">
+	<Grid RowDefinitions="Auto,Auto">
+		<StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+			<!--Hardcoded width for TextBlock to avoid moving controls around when going between
+			single and double digits-->
+			<TextBlock Width="18" TextAlignment="Center" Text="{Binding NewItemsCount}" FontWeight="Bold" Margin="5"/>
+			<Button Content="Refresh" Command="{Binding Refresh}"/>
+			<Button Content="Refresh All" Command="{Binding RefreshAll}"/>
+			<Button Content="⏯" Command="{Binding PlayPause}"/>
+			<Button Content="▲" Command="{Binding SwitchToMainPlayer}"/>
+			<Button Content="X" Command="{Binding CloseWindow}"/>
+		</StackPanel>
+		<ProgressBar Grid.Row="1" Value="{Binding Progress}" Maximum="{Binding ProgressMax}"/>
+	</Grid>
+</Window>

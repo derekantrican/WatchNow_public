@@ -1,0 +1,21 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+			 xmlns:asyncImageLoader="clr-namespace:AsyncImageLoader;assembly=AsyncImageLoader.Avalonia"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="WatchNow.Avalonia.Views.UserControls.VideoListing"
+			 PointerPressed="VideoListing_PointerPressed"
+			 Background="Transparent"><!--For some reason, explicitly specifiying Background="Transparent" 
+			 allows the click event to trigger on the area outside the text (video title)-->
+	<Grid ColumnDefinitions="Auto,*" Margin="5">
+		<!--Todo: there is some extra padding/spacing being put in the Grid I think-->
+		<Image asyncImageLoader:ImageLoader.Source="{Binding ImageUrl}" Height="221" Width="332"/>
+		<TextBlock Grid.Column="1" VerticalAlignment="Center" Text="{Binding Text}" TextWrapping="Wrap" Margin="20 0 0 0"/>
+		<StackPanel Grid.Column="1" VerticalAlignment="Bottom" HorizontalAlignment="Right">
+			<Button Content="{Binding ActionButtonText}" HorizontalContentAlignment="Center" Width="130"
+					Command="{Binding ActionButtonAction}" IsVisible="{Binding ActionButtonVisible}"/>
+			<Button Content="Open in Browser" Command="{Binding OpenInBrowserAction}" Width="130"/>
+		</StackPanel>
+	</Grid>
+</UserControl>

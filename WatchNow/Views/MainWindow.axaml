@@ -1,0 +1,197 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+		xmlns:i="using:Avalonia.Xaml.Interactivity"
+        xmlns:ia="using:Avalonia.Xaml.Interactions.Core"
+		xmlns:ic="using:Avalonia.Xaml.Interactions.Custom"
+		xmlns:avaConv="using:Avalonia.Controls.Converters"
+        xmlns:views="clr-namespace:WatchNow.Avalonia.Views"
+        xmlns:uc="clr-namespace:WatchNow.Avalonia.Views.UserControls"
+        xmlns:viewModels="clr-namespace:WatchNow.Avalonia.ViewModels"
+        xmlns:converter="clr-namespace:WatchNow.Avalonia.Views.Converters"
+        mc:Ignorable="d"
+		Width="800" Height="500"
+        x:Class="WatchNow.Avalonia.Views.MainWindow"
+		ExtendClientAreaChromeHints="NoChrome"
+		ExtendClientAreaToDecorationsHint="True"
+        Icon="/Assets/WatchNow.ico"
+        Title="WatchNow"
+		PointerMoved="InputElement_OnPointerMoved"
+		PointerPressed="InputElement_OnPointerPressed"
+		PointerReleased="InputElement_OnPointerReleased"
+		Topmost="True">
+	<Window.Resources>
+		<converter:IndexToBoolConverter x:Key="IndexToBoolConverter"/>
+		<converter:TabBackgroundColorConverter x:Key="TabBackgroundColorConverter"/>
+		
+		<!--Horizontally scroll source tabs (https://github.com/AvaloniaUI/Avalonia/discussions/11896#discussioncomment-6302035)-->
+		<ControlTheme x:Key="{x:Type TabControl}" TargetType="TabControl">
+			<Setter Property="Template">
+				<ControlTemplate>
+					<Border BorderBrush="{TemplateBinding BorderBrush}"
+							BorderThickness="{TemplateBinding BorderThickness}"
+							CornerRadius="{TemplateBinding CornerRadius}"
+							Background="{TemplateBinding Background}"
+							HorizontalAlignment="{TemplateBinding HorizontalAlignment}"
+							VerticalAlignment="{TemplateBinding VerticalAlignment}">
+						<DockPanel>
+							<ScrollViewer DockPanel.Dock="{TemplateBinding TabStripPlacement}"
+										  HorizontalAlignment="Stretch"
+										  HorizontalScrollBarVisibility="Hidden">
+								<ItemsPresenter Name="PART_ItemsPresenter"
+												ItemsPanel="{TemplateBinding ItemsPanel}" />
+							</ScrollViewer >
+							<!--Todo: maybe add '<' & '>' arrows to move the tabs like WinForms has-->
+							<ContentPresenter Name="PART_SelectedContentHost"
+											  Margin="{TemplateBinding Padding}"
+											  HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+											  VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
+											  Content="{TemplateBinding SelectedContent}"
+											  ContentTemplate="{TemplateBinding SelectedContentTemplate}" />
+						</DockPanel>
+					</Border>
+				</ControlTemplate>
+			</Setter>
+			<Setter Property="ItemsPanel">
+				<ItemsPanelTemplate>
+					<StackPanel Orientation="Horizontal"/>
+				</ItemsPanelTemplate>
+			</Setter>
+		</ControlTheme>
+	</Window.Resources>
+	<Window.KeyBindings>
+		<KeyBinding Gesture="Escape" Command="{Binding EscExitFullScreen}"/>
+		<KeyBinding Gesture="Ctrl+Shift+I" Command="{Binding OpenWebViewDevTools}"/>
+		<!--Using Ctrl+Shift+I because F12 opens Avalonia DevTools and this is an alternative according to
+		WebView2 docs https://learn.microsoft.com/en-us/microsoft-edge/webview2/how-to/debug-devtools-->
+	</Window.KeyBindings>
+	<Grid>
+		<Grid VerticalAlignment="Top" ColumnDefinitions="*,Auto,Auto,Auto,Auto,Auto,Auto,Auto" Margin="140 0 0 0" ZIndex="2">
+			<!--Grid rendered on top of TabControl with a higher ZIndex & left margin to not overlay "Main/Player" tabs-->
+			<TextBox Text="{Binding TextBoxText}" MinHeight="20" Margin="5 3 3 0"/>
+			<Button Grid.Column="1" Content="+">
+				<i:Interaction.Behaviors>
+					<ic:ButtonClickEventTriggerBehavior KeyModifiers="None">
+						<ia:InvokeCommandAction Command="{Binding AddSourceFromTextBox}"/>
+					</ic:ButtonClickEventTriggerBehavior>
+					<ic:ButtonClickEventTriggerBehavior KeyModifiers="Control">
+						<ia:InvokeCommandAction Command="{Binding NavigateUrlFromTextBox}"/>
+					</ic:ButtonClickEventTriggerBehavior>
+				</i:Interaction.Behaviors>
+			</Button>
+			<Button Grid.Column="2" Content="Refresh" Command="{Binding Refresh}"/>
+			<Button Grid.Column="3" Content="Refresh All" Command="{Binding RefreshAll}"/>
+			<Button Grid.Column="4" Content="⏯" Command="{Binding PlayPause}"/>
+			<Button Grid.Column="5" Content="▼" Command="{Binding SwitchToMiniPlayer}">
+				<Button.ContextMenu>
+					<ContextMenu ItemsSource="{Binding ScreenSnapOptions}" AttachedToVisualTree="ContextMenu_AttachedToVisualTree">
+						<ContextMenu.Styles>
+							<!--This works really well, but not exactly sure why this is the best working way.
+							This came from https://github.com/AvaloniaUI/Avalonia/discussions/12021#discussioncomment-6349269-->
+							<Style Selector="MenuItem">
+								<Setter Property="Header" Value="{Binding Header}"/>
+								<Setter Property="Command" Value="{Binding SnapToScreen}"/>
+							</Style>
+						</ContextMenu.Styles>
+					</ContextMenu>
+				</Button.ContextMenu>
+			</Button>
+			<Button Grid.Column="6" Content="_" Command="{Binding MinimizeWindow}"/>
+			<Button Grid.Column="7" Content="X" Command="{Binding CloseWindow}"/>
+		</Grid>
+
+		<!--"TabStrip over Content" (rather than TabConrol) is a workaround for 
+		https://github.com/MicroSugarDeveloperOrg/Avalonia.WebView/issues/20-->
+		<Grid RowDefinitions="Auto,*,Auto">
+			<TabStrip x:Name="tabStrip" SelectedIndex="{Binding SelectedTabIndex}">
+				<TabStrip.Styles>
+					<Style Selector="TabStrip WrapPanel">
+						<Setter Property="MaxHeight" Value="35"/>
+						<Setter Property="Margin" Value="0"/>
+					</Style>
+
+					<Style Selector="TabItem">
+						<Setter Property="FontSize" Value="20"/>
+						<Setter Property="Foreground" Value="White"/>
+						<Setter Property="Padding" Value="0"/>
+					</Style>
+
+					<Style Selector="TabStripItem:selected">
+						<!--Make the selected tab background the same as Plex-->
+						<Setter Property="Background" Value="#1f1f1f"/>
+					</Style>
+
+					<Style Selector="TabStripItem">
+						<!--This helps keep the "blue selected bar" close to the Header-->
+						<Setter Property="MinHeight" Value="55"/>
+						<Setter Property="Padding" Value="10"/>
+					</Style>
+					
+				</TabStrip.Styles>
+				<TabItem Header="Main"/>
+				<TabItem Header="Player"/>
+			</TabStrip>
+			<TabControl x:Name="sources" Grid.Row="1" Background="#1f1f1f" ItemsSource="{Binding Sources}"
+						SelectedItem="{Binding SelectedSource}"
+						IsVisible="{Binding SelectedTabIndex, Converter={StaticResource IndexToBoolConverter}, ConverterParameter=0}">
+				<TabControl.Styles>
+					<Style Selector="TabControl WrapPanel">
+						<Setter Property="Background" Value="#1f1f1f"/>
+						<Setter Property="MaxHeight" Value="20"/>
+					</Style>
+
+					<Style Selector="TabItem">
+						<Setter Property="FontSize" Value="14"/>
+						<Setter Property="MinHeight" Value="20"/>
+						<Setter Property="VerticalAlignment" Value="Center"/>
+						<Setter Property="Background" Value="{Binding HasNewItems, Converter={StaticResource TabBackgroundColorConverter}}"/>
+						<Setter Property="Foreground" Value="White"/>
+						<Setter Property="Margin" Value="0"/>
+						<Setter Property="Padding" Value="5 0"/>
+					</Style>
+
+					<Style Selector="TabItem:selected">
+						<Setter Property="Foreground" Value="Black"/>
+						<Setter Property="Background" Value="DarkGray"/>
+						<Setter Property="Margin" Value="0"/>
+						<Setter Property="Padding" Value="5 0"/>
+					</Style>
+
+					<Style Selector="TabItem:selected /template/ Border#PART_SelectedPipe">
+						<Setter Property="IsVisible" Value="false"/>
+					</Style>
+				</TabControl.Styles>
+				<TabControl.ItemTemplate>
+					<DataTemplate>
+						<TextBlock Text="{Binding Header}">
+							<TextBlock.ContextMenu>
+								<ContextMenu>
+									<MenuItem Header="Remove" Command="{Binding RemoveSource}"/>
+								</ContextMenu>
+							</TextBlock.ContextMenu>
+						</TextBlock>
+					</DataTemplate>
+				</TabControl.ItemTemplate>
+				<TabControl.ContentTemplate>
+					<!--Helpful reference: https://docs.avaloniaui.net/docs/guides/data-binding/how-to-bind-tabs-->
+					<DataTemplate DataType="viewModels:SourceViewModel">
+						<ScrollViewer>
+							<ItemsControl ItemsSource="{Binding Items}">
+								<ItemsControl.ItemTemplate>
+									<DataTemplate>
+										<uc:VideoListing DataContext="{Binding .}"/>
+									</DataTemplate>
+								</ItemsControl.ItemTemplate>
+							</ItemsControl>
+						</ScrollViewer>
+					</DataTemplate>
+				</TabControl.ContentTemplate>
+			</TabControl>
+			<WebView x:Name="webView" Grid.Row="1" Url="{Binding CurrentUrl}" NavigationCompleted="WebView_NavigationCompleted"
+					 FullScreenChanged="WebView_FullScreenChanged"
+					 IsVisible="{Binding SelectedTabIndex, Converter={StaticResource IndexToBoolConverter}, ConverterParameter=1}"/>
+			<ProgressBar x:Name="progressBar" Grid.Row="2" Value="{Binding Progress}" Maximum="{Binding ProgressMax}"/>
+		</Grid>
+	</Grid>
+</Window>
