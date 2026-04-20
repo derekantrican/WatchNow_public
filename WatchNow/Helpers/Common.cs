@@ -13,7 +13,6 @@ namespace WatchNow.Helpers
     {
         public static string SettingsFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "WatchNow");
         public static string SettingsFile = Path.Combine(SettingsFolder, "Settings.ini");
-        public static string CEFCacheFolder = Path.Combine(SettingsFolder, "CEFCache");
 
 		public static Action<string, string> ShowMessageBox;
 
@@ -45,49 +44,67 @@ namespace WatchNow.Helpers
 
 		public static void OpenUrl(string url)
 		{
-			Process.Start(new ProcessStartInfo("cmd", $"/c start {url}") { CreateNoWindow = true }); // hack because of this: https://github.com/dotnet/corefx/issues/10361
+			try
+			{
+				Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
+			}
+			catch (Exception ex)
+			{
+				Debug.WriteLine($"Failed to open URL: {ex.Message}");
+			}
 		}
 
 		//Todo: if we improve this in the future, we should probably do this in a better way. This was just the quickest thing I could think of
 		#region Settings
 		public static T ReadSetting<T>(string settingName, T defaultValue = default)
 		{
-			if (!File.Exists(SettingsFile))
-				return defaultValue;
-
-			foreach (string setting in File.ReadAllLines(SettingsFile))
+			lock (settingsLocker)
 			{
-				if (setting.StartsWith(settingName + "="))
-					return (T)Convert.ChangeType(setting.Split(new[] { '=' }, 2)[1], typeof(T));
-			}
+				if (!File.Exists(SettingsFile))
+					return defaultValue;
 
-			return defaultValue;
+				foreach (string setting in File.ReadAllLines(SettingsFile))
+				{
+					if (setting.StartsWith(settingName + "="))
+					{
+						try
+						{
+							return (T)Convert.ChangeType(setting.Split(new[] { '=' }, 2)[1], typeof(T));
+						}
+						catch
+						{
+							return defaultValue;
+						}
+					}
+				}
+
+				return defaultValue;
+			}
 		}
 
 		private static object settingsLocker = new object();
 		public static void SaveSetting(string settingName, object value)
 		{
-			if (!File.Exists(SettingsFile))
-			{
-				if (!Directory.Exists(SettingsFolder))
-				{
-					Directory.CreateDirectory(SettingsFolder);
-				}
-
-                File.Create(SettingsFile).Close();
-			}
-
-			List<string> settings = File.ReadAllLines(SettingsFile).ToList();
-			int index = settings.FindIndex(p => p.StartsWith(settingName + "="));
-			if (index > -1)
-			{
-				settings.RemoveAt(index);
-			}
-
-			settings.Add(settingName + "=" + value.ToString());
-
 			lock (settingsLocker)
 			{
+				if (!File.Exists(SettingsFile))
+				{
+					if (!Directory.Exists(SettingsFolder))
+					{
+						Directory.CreateDirectory(SettingsFolder);
+					}
+
+					File.Create(SettingsFile).Close();
+				}
+
+				List<string> settings = File.ReadAllLines(SettingsFile).ToList();
+				int index = settings.FindIndex(p => p.StartsWith(settingName + "="));
+				if (index > -1)
+				{
+					settings.RemoveAt(index);
+				}
+
+				settings.Add(settingName + "=" + value.ToString());
 				File.WriteAllLines(SettingsFile, settings.ToArray());
 			}
 		}

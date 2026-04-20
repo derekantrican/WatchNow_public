@@ -125,7 +125,7 @@ public class MainViewModel : ViewModelBase
             selectedSource = value;
             FirePropertyChanged();
 
-            if (!string.IsNullOrEmpty(selectedSource.UrlToOpen) && !removingSource /*Don't call the "LoadUrl" line below if this gets triggered while removing a source*/)
+            if (selectedSource != null && !string.IsNullOrEmpty(selectedSource.UrlToOpen) && !removingSource /*Don't call the "LoadUrl" line below if this gets triggered while removing a source*/)
             {
                 LoadUrl(selectedSource.UrlToOpen);
             }

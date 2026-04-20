@@ -30,7 +30,7 @@ namespace WatchNow.Avalonia.ViewModels.Sources
             // We will then also have to handle refreshing the token: https://developer.raindrop.io/v1/authentication/token#the-access-token-refresh
         }
 
-		private static readonly HttpClient client = new HttpClient();
+		private static readonly HttpClient client = new HttpClient() { Timeout = TimeSpan.FromSeconds(30) };
         private const string BaseUrl = "https://api.raindrop.io/rest/v1/";
 
 		private class RainDropBookmark // I've only implemented the things I need. Here's the full structure: https://developer.raindrop.io/v1/collections/methods

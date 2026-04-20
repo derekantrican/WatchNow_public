@@ -3,6 +3,7 @@ using System.Linq;
 using System.Net.Http;
 using System.ServiceModel.Syndication;
 using System.Threading.Tasks;
+using System.Diagnostics;
 using System.Xml;
 using WatchNow.Helpers;
 
@@ -47,11 +48,12 @@ namespace WatchNow.Avalonia.ViewModels.Sources
                 }
                 catch (Exception ex)
                 {
+                    Debug.WriteLine($"Error loading playlist item: {ex.Message}");
                 }
 			}
 		}
 
-        private static readonly HttpClient _http = new HttpClient();
+        private static readonly HttpClient _http = new HttpClient() { Timeout = TimeSpan.FromSeconds(30) };
 
         private static async Task<SyndicationFeed> GetPlaylistInfoAsync(string playlistId)
 		{

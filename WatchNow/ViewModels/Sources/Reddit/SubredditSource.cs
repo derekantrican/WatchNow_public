@@ -21,6 +21,7 @@ namespace WatchNow.Avalonia.ViewModels.Sources
 
         private static readonly HttpClient _http = new HttpClient()
         {
+            Timeout = TimeSpan.FromSeconds(30),
             DefaultRequestHeaders =
             {
                 { "User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:142.0) Gecko/20100101 Firefox/142.0" }
@@ -49,7 +50,11 @@ namespace WatchNow.Avalonia.ViewModels.Sources
             foreach (RedditPost post in posts.Take(finalAmount))
             {
                 string videoUrl = post.url.ToString();
-                YouTubeHelper.TryParseYouTubeVideoId(videoUrl, out string videoId);
+                if (!YouTubeHelper.TryParseYouTubeVideoId(videoUrl, out string videoId))
+                {
+                    incrementProgressBar();
+                    continue;
+                }
 
                 Match timestamp = Regex.Match(videoUrl, @"t=(?<hour>\d+h)?(?<minute>\d+m)?(?<second>\d+s)|t=(?<other>[^&]+)");
                 videoUrl = $"https://www.youtube.com/embed/{videoId}";
