@@ -132,16 +132,26 @@
 				<TabItem Header="Main"/>
 				<TabItem Header="Player"/>
 			</TabStrip>
-			<TabControl x:Name="sources" Grid.Row="1" Background="#1f1f1f" ItemsSource="{Binding Sources}"
+			<uc:CachedTabControl x:Name="sources" Grid.Row="1" Background="#1f1f1f" ItemsSource="{Binding Sources}"
 						SelectedItem="{Binding SelectedSource}"
 						IsVisible="{Binding SelectedTabIndex, Converter={StaticResource IndexToBoolConverter}, ConverterParameter=0}">
-				<TabControl.Styles>
-					<Style Selector="TabControl WrapPanel">
+				<uc:CachedTabControl.Styles>
+					<Style Selector="TabStrip">
 						<Setter Property="Background" Value="#1f1f1f"/>
-						<Setter Property="MaxHeight" Value="20"/>
 					</Style>
 
-					<Style Selector="TabItem">
+					<!-- Keep the horizontal scrollbar thin and prevent it from expanding on hover -->
+					<Style Selector="ScrollViewer /template/ ScrollBar">
+						<Setter Property="Height" Value="3"/>
+						<Setter Property="MinHeight" Value="3"/>
+						<Setter Property="Margin" Value="0"/>
+					</Style>
+					<Style Selector="ScrollViewer /template/ ScrollBar /template/ Thumb">
+						<Setter Property="MinHeight" Value="3"/>
+						<Setter Property="Height" Value="3"/>
+					</Style>
+
+					<Style Selector="TabStripItem">
 						<Setter Property="FontSize" Value="14"/>
 						<Setter Property="MinHeight" Value="20"/>
 						<Setter Property="VerticalAlignment" Value="Center"/>
@@ -151,18 +161,18 @@
 						<Setter Property="Padding" Value="5 0"/>
 					</Style>
 
-					<Style Selector="TabItem:selected">
+					<Style Selector="TabStripItem:selected">
 						<Setter Property="Foreground" Value="Black"/>
 						<Setter Property="Background" Value="DarkGray"/>
 						<Setter Property="Margin" Value="0"/>
 						<Setter Property="Padding" Value="5 0"/>
 					</Style>
 
-					<Style Selector="TabItem:selected /template/ Border#PART_SelectedPipe">
-						<Setter Property="IsVisible" Value="false"/>
+					<Style Selector="TabStripItem:selected /template/ Border#PART_SelectedPipe">
+						<Setter Property="IsVisible" Value="False"/>
 					</Style>
-				</TabControl.Styles>
-				<TabControl.ItemTemplate>
+				</uc:CachedTabControl.Styles>
+				<uc:CachedTabControl.ItemTemplate>
 					<DataTemplate>
 						<TextBlock Text="{Binding Header}">
 							<TextBlock.ContextMenu>
@@ -172,9 +182,8 @@
 							</TextBlock.ContextMenu>
 						</TextBlock>
 					</DataTemplate>
-				</TabControl.ItemTemplate>
-				<TabControl.ContentTemplate>
-					<!--Helpful reference: https://docs.avaloniaui.net/docs/guides/data-binding/how-to-bind-tabs-->
+				</uc:CachedTabControl.ItemTemplate>
+				<uc:CachedTabControl.CachedContentTemplate>
 					<DataTemplate DataType="viewModels:SourceViewModel">
 						<ScrollViewer>
 							<ItemsControl ItemsSource="{Binding Items}">
@@ -186,8 +195,8 @@
 							</ItemsControl>
 						</ScrollViewer>
 					</DataTemplate>
-				</TabControl.ContentTemplate>
-			</TabControl>
+				</uc:CachedTabControl.CachedContentTemplate>
+			</uc:CachedTabControl>
 			<uc:NativeWebView2 x:Name="webView" Grid.Row="1" Url="{Binding CurrentUrl}"
 					 IsVisible="{Binding SelectedTabIndex, Converter={StaticResource IndexToBoolConverter}, ConverterParameter=1}"/>
 			<ProgressBar x:Name="progressBar" Grid.Row="2" Value="{Binding Progress}" Maximum="{Binding ProgressMax}"/>

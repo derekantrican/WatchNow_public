@@ -1,0 +1,20 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="WatchNow.Avalonia.Views.UserControls.CachedTabControl"
+             Padding="0" Margin="0">
+  <DockPanel>
+    <!-- ScrollViewer enables horizontal scrolling when there are too many tabs -->
+    <ScrollViewer DockPanel.Dock="Top"
+                  HorizontalAlignment="Stretch"
+                  HorizontalScrollBarVisibility="Auto"
+                  VerticalScrollBarVisibility="Disabled">
+      <TabStrip x:Name="tabStrip" />
+    </ScrollViewer>
+    <!-- Panel layers all cached views on top of each other; only the selected one is visible.
+         This keeps all views in the visual tree so WebView2 is never unloaded. -->
+    <Panel x:Name="tabContent" />
+  </DockPanel>
+</UserControl>
