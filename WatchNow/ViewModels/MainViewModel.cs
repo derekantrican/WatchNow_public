@@ -263,14 +263,14 @@ public class MainViewModel : ViewModelBase
         SelectedTabIndex = 1;
     }
 
-    public string GetSponsorBlockJSForCurrentUrl()
+    public async Task<string> GetSponsorBlockJSForCurrentUrlAsync()
     {
         if (YouTubeHelper.TryParseYouTubeVideoId(CurrentUrl, out string youtubeId))
         {
             JArray sponsorSegments;
             try
             {
-                sponsorSegments = Common.GetSponsorBlockSegments(youtubeId);
+                sponsorSegments = await Common.GetSponsorBlockSegmentsAsync(youtubeId);
                 if (sponsorSegments.Count <= 0)
                     return "";
             }

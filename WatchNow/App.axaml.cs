@@ -5,8 +5,6 @@ using Avalonia.Markup.Xaml;
 using WatchNow.Avalonia.ViewModels;
 using WatchNow.Avalonia.Views;
 
-using AvaloniaWebView;
-
 namespace WatchNow.Avalonia;
 
 public partial class App : Application
@@ -24,12 +22,5 @@ public partial class App : Application
 		}
 
 		base.OnFrameworkInitializationCompleted();
-	}
-
-	public override void RegisterServices()
-	{
-		base.RegisterServices();
-
-		AvaloniaWebViewBuilder.Initialize(default);
 	}
 }

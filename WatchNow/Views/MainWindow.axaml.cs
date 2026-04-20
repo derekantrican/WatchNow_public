@@ -1,8 +1,10 @@
-﻿using Avalonia;
+﻿using System;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Platform;
 using Avalonia.Threading;
+using Microsoft.Web.WebView2.Core;
 using MsBox.Avalonia;
 using WatchNow.Avalonia.ViewModels;
 using WatchNow.Helpers;
@@ -46,6 +48,10 @@ public partial class MainWindow : Window
 	{
 		InitializeComponent();
 
+		webView.WebView2Initialized += WebView_Initialized;
+		webView.NavigationCompleted += WebView_NavigationCompleted;
+		webView.ContainsFullScreenElementChanged += WebView_FullScreenChanged;
+
 		this.Loaded += MainWindow_Loaded;
 		this.Opened += (sender, args) => WinApi.RemoveRoundedCorners(this.TryGetPlatformHandle().Handle);
 		this.GotFocus += (sender, args) => WinApi.RemoveRoundedCorners(this.TryGetPlatformHandle().Handle);
@@ -86,21 +92,34 @@ public partial class MainWindow : Window
 		}
 	}
 
-	private void WebView_NavigationCompleted(object sender, WebViewCore.Events.WebViewUrlLoadedEventArg e)
+	private void WebView_Initialized(object sender, EventArgs e)
 	{
-		// Todo: similar to "adding a sponsorblock button" like the below function, we should also add a "show as embed" button that redirects a YouTube url (eg https://www.youtube.com/watch?v=KC-NOkm-dGs) to the embed version (eg https://www.youtube.com/embed/KC-NOkm-dGs)
-		webView.ExecuteScriptAsync(mainViewModel.GetSponsorBlockJSForCurrentUrl());
+		// This resolves "Error 153" with the YouTube embed player. This was introduced a couple months ago, breaking many usages of the YouTube embed player
+		// as YouTube now requires a "Referer" header to be set. This fix was taken from https://github.com/rocksdanister/lively/issues/2991#issuecomment-3465992558
+		webView.CoreWebView2.AddWebResourceRequestedFilter("*youtube.com/*", CoreWebView2WebResourceContext.All);
+		webView.CoreWebView2.WebResourceRequested += (sender, args) =>
+		{
+			var headers = args.Request.Headers;
+			if (!headers.Contains("Referer"))
+				headers.SetHeader("Referer", "https://localhost/");
+		};
 	}
 
-	private void WebView_FullScreenChanged(object sender, WebViewCore.Events.WebViewFullScreenChangedEventArgs e)
+	private async void WebView_NavigationCompleted(object sender, CoreWebView2NavigationCompletedEventArgs e)
 	{
-		//Adding this event required me to build a custom version of Avalonia.WebView because the official
-		//project seems to be inactive now (and my PR isn't getting considered).
-		//https://github.com/derekantrican/Avalonia.WebView
+		// Todo: similar to "adding a sponsorblock button" like the below function, we should also add a "show as embed" button that redirects a YouTube url (eg https://www.youtube.com/watch?v=KC-NOkm-dGs) to the embed version (eg https://www.youtube.com/embed/KC-NOkm-dGs)
+		string js = await mainViewModel.GetSponsorBlockJSForCurrentUrlAsync();
+		if (!string.IsNullOrEmpty(js))
+		{
+			await webView.ExecuteScriptAsync(js);
+		}
+	}
 
-		webViewFullScreen = e.IsFullScreen;
+	private void WebView_FullScreenChanged(object sender, object e)
+	{
+		webViewFullScreen = webView.CoreWebView2.ContainsFullScreenElement;
 
-		if (e.IsFullScreen)
+		if (webView.CoreWebView2.ContainsFullScreenElement)
 		{
 			//Save window size & position (for restore)
 			lastPosition = this.Position;

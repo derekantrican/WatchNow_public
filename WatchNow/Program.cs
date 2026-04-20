@@ -2,8 +2,6 @@
 
 using Avalonia;
 
-using Avalonia.WebView.Desktop;
-
 namespace WatchNow.Avalonia.Desktop;
 
 class Program
@@ -20,6 +18,5 @@ class Program
         => AppBuilder.Configure<App>()
             .UsePlatformDetect()
             .WithInterFont()
-            .LogToTrace()
-            .UseDesktopWebView();
+            .LogToTrace();
 }

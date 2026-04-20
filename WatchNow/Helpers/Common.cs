@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 
 namespace WatchNow.Helpers
@@ -31,14 +32,14 @@ namespace WatchNow.Helpers
             }
         }
 
-		public static JArray GetSponsorBlockSegments(string youtubeVideoId)
+		public static async Task<JArray> GetSponsorBlockSegmentsAsync(string youtubeVideoId)
 		{
 			string url = $"https://sponsor.ajay.app/api/skipSegments?videoID={youtubeVideoId}&categories=[\"sponsor\",\"intro\",\"outro\",\"selfpromo\",\"interaction\"]";
 
-			using (HttpClient client = new HttpClient())
+			using (HttpClient client = new HttpClient() { Timeout = TimeSpan.FromSeconds(15) })
 			{
-				HttpResponseMessage response = client.Send(new HttpRequestMessage(HttpMethod.Get, url));
-				return JArray.Parse(response.Content.ReadAsStringAsync().Result);
+				string content = await client.GetStringAsync(url);
+				return JArray.Parse(content);
 			}
 		}
 

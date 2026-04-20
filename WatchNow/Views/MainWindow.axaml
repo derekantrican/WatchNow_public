@@ -188,8 +188,7 @@
 					</DataTemplate>
 				</TabControl.ContentTemplate>
 			</TabControl>
-			<WebView x:Name="webView" Grid.Row="1" Url="{Binding CurrentUrl}" NavigationCompleted="WebView_NavigationCompleted"
-					 FullScreenChanged="WebView_FullScreenChanged"
+			<uc:NativeWebView2 x:Name="webView" Grid.Row="1" Url="{Binding CurrentUrl}"
 					 IsVisible="{Binding SelectedTabIndex, Converter={StaticResource IndexToBoolConverter}, ConverterParameter=1}"/>
 			<ProgressBar x:Name="progressBar" Grid.Row="2" Value="{Binding Progress}" Maximum="{Binding ProgressMax}"/>
 		</Grid>
